@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="initial-scale=1.0">
+<title>Picker</title>
+<style>
+body {
+    background:#FFF;
+    color:#000;
+    font-family:verdana, sans-serif;
+    font-size:6pt;
+    margin:0;
+    padding:10px;
+}
+
+a:link, a:visited {
+    color:#008;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+a:active, a:hover {
+    color:#ACF;
+}
+
+.info {
+    font-weight:bold;
+}
+
+button {
+    font-family:inherit;
+    cursor:pointer;
+    border:0;
+    border-radius:3px;
+    padding:0.3em 0.5em;
+    background:#CCC;
+    color:#000;
+}
+
+button:hover {
+    background:#DDD;
+}
+
+button.disabled {
+    background:#DDD;
+    color:#888;
+    cursor:not-allowed;
+}
+
+button.disabled:hover {
+    background:#DDD;
+}
+
+#container {
+    position:relative;
+    margin-left:-10px;
+    margin-right:-10px;
+    padding:10px;
+    overflow:hidden;
+}
+
+@media (min-width:1024px) {
+    /* Put the found favorites beside the picking div when the window is sufficiently large */
+    #picking {
+        float:left;
+        width:636px;
+    }
+
+    #secondary {
+        margin-left:646px;
+    }
+}
+
+@media (min-width:1300px) {
+    /* Once we get to the point where 636px is less than half of the width of the screen, make the picking div just take up half */
+    #picking {
+        width:50%;
+    }
+
+    #secondary {
+        margin-left:51%;
+    }
+}
+
+#pick {
+    background:#58F;
+    color:#FFF;
+    font-size:10pt;
+    font-weight:bold;
+    width:6em;
+    border-radius:5px;
+    margin-right:10px;
+}
+
+#pick.disabled {
+    background:#ACF;
+}
+
+#pick:hover {
+    background:#ACF;
+}
+
+.item-list {
+    padding:0;
+    list-style-type:none;
+    line-height:100px;
+}
+
+.item-list li {
+    margin:0;
+    display:inline-block;
+    height:100px;
+    width:100px;
+    line-height:100px;
+    border:3px solid transparent;
+    text-align:center;
+    position:relative;
+    vertical-align:top;
+    overflow:hidden;
+    border-radius:100%;
+    background:#F7F7F7;
+    color:#000;
+}
+
+.item-list li img {
+    vertical-align:middle;
+    max-height:100%;
+    max-width:100%;
+}
+
+.item-list li span {
+    display:inline-block;
+    vertical-align:middle;
+    line-height:1.2;
+}
+
+@media (max-width:636px) {
+    .item-list {
+        line-height:75px;
+    }
+
+    .item-list li {
+        line-height:75px;
+        height:75px;
+        width:75px;
+    }
+}
+
+@media (max-width:423px) {
+    .item-list {
+        line-height:50px;
+    }
+
+    .item-list li {
+        line-height:50px;
+        height:50px;
+        width:50px;
+    }
+}
+
+#evaluating li {
+    cursor:pointer;
+}
+
+#favorites li {
+    cursor:move;
+}
+
+.item-list li:hover {
+    background:#CDF;
+}
+
+.item-list.sorting li:hover {
+    background:#F7F7F7;
+}
+
+#evaluating li.selected {
+    border:3px solid #7AC;
+}
+
+#evaluating, #buttons {
+    text-align:center;
+    margin:auto;
+}
+
+#evaluating li.notice {
+    width:auto;
+    height:auto;
+    max-width:260px;
+    margin:auto;
+    background:#F7F7F7;
+    border-radius:14px;
+    padding:30px 30px;
+    color:#000;
+    text-align:center;
+    line-height:1.4;
+    cursor:auto;
+    font-size:6pt;
+}
+
+#buttons {
+    margin-top:30px;
+    position:relative;
+    z-index:3;
+}
+
+.picker-info {
+    text-align:center;
+    font-size:smaller;
+}
+
+#progress-bar {
+    display: block;
+    margin: auto;
+    height: 15px;
+    width: 150px;
+    margin-top: 5px;
+    background: #CCC;
+}
+
+#progress-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: #58F;
+}
+</style>
+</head>
+<body>
+<h1>Favourite Song Picker</h1>
+
+<p>Note: Songs appearing on multiple albums listed under the album of their first appearance.</p>
+
+<div id="container">
+
+<div id="picking">
+<ul id="evaluating" class="item-list">
+</ul>
+
+<p id="buttons"><button id="pick">Pick</button> <button id="pass">Pass</button> <button id="undo">Undo</button> <button id="redo">Redo</button></p>
+
+<div class="picker-info">
+    <p>Songs remaining to be eliminated before next favorite is found: <span id="remaining"></span></p>
+
+    <p>Progress towards next favorite: <span id="progress-bar"><span></span></span></p>
+</div>
+
+</div>
+
+<div id="secondary">
+  <p>Include Albums:
+    <label><input type="checkbox" name="albums" class="albums" value="Take This to Your Grave"> Take This to Your Grave</label>
+    <label><input type="checkbox" name="albums" class="albums" value="From Under the Cork Tree"> From Under the Cork Tree</label>
+    <label><input type="checkbox" name="albums" class="albums" value="Infinity on High"> Infinity on High</label>
+    <label><input type="checkbox" name="albums" class="albums" value="Folie a Deux"> Folie a Deux</label>
+    <label><input type="checkbox" name="albums" class="albums" value="Save Rock and Roll"> Save Rock and Roll</label>
+    <label><input type="checkbox" name="albums" class="albums" value="American Beauty/American Psycho"> American Beauty/American Psycho</label>
+    <label><input type="checkbox" name="albums" class="albums" value="Mania"> Mania</label>
+  </p>
+<h2>Found favorites</h2>
+
+<ol id="favorites" class="item-list">
+</ol>
+</div>
+</div>
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+<script src="picker.js"></script>
+<script src="picker-ui.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.7.0/Sortable.min.js"></script>
+<script>
+'use strict';
+
+var items = [
+  // Define your items here
+  {id: 'Tell That Mick…', album: 'Take This to Your Grave'},
+  {id: 'Dead on Arrival', album: 'Take This to Your Grave'},
+  {id: 'Grand Theft Autumn/Where Is Your Boy', album: 'Take This to Your Grave'},
+  {id: 'Saturday', album: 'Take This to Your Grave'},
+  {id: 'Homesick at Space Camp', album: 'Take This to Your Grave'},
+  {id: 'Sending Postcards…', album: 'Take This to Your Grave'},
+  {id: 'Chicago Is So Two Years Ago', album: 'Take This to Your Grave'},
+  {id: 'The Pros and Cons of Breathing', album: 'Take This to Your Grave'},
+  {id: 'Grenade Jumper', album: 'Take This to Your Grave'},
+  {id: 'Calm Before the Storm', album: 'Take This to Your Grave'},
+  {id: 'Reinventing the Wheel to Run Myself Over', album: 'Take This to Your Grave'},
+  {id: 'The Patron Saint of Liars and Fakes', album: 'Take This to Your Grave'},
+  {id: 'Our Lawyer Made Us…', album: 'From Under the Cork Tree'},
+  {id: 'Of All the Gin Joints in All the World', album: 'From Under the Cork Tree'},
+  {id: 'Dance, Dance', album: 'From Under the Cork Tree'},
+  {id: 'Sugar, We\'re Goin\' Down', album: 'From Under the Cork Tree'},
+  {id: 'Nobody Puts Baby in the Corner', album: 'From Under the Cork Tree'},
+  {id: 'I\'ve Got a Dark Alley …', album: 'From Under the Cork Tree'},
+  {id: '7 Minutes in Heaven (Atavan Halen)', album: 'From Under the Cork Tree'},
+  {id: 'Sophomore Slump…', album: 'From Under the Cork Tree'},
+  {id: 'Champagne…', album: 'From Under the Cork Tree'},
+  {id: 'I Slept with Someone…', album: 'From Under the Cork Tree'},
+  {id: '...Sixteen Candles…', album: 'From Under the Cork Tree'},
+  {id: 'Get Busy Living…', album: 'From Under the Cork Tree'},
+  {id: 'XO', album: 'From Under the Cork Tree'},
+  {id: 'Snitches and Talkers', album: 'From Under the Cork Tree'},
+  {id: 'The Music or the Misery', album: 'From Under the Cork Tree'},
+  {id: 'Thriller', album: 'Infinity on High'},
+  {id: 'The Take Over, the Breaks Over', album: 'Infinity on High'},
+  {id: 'This Ain\'t a Scene…', album: 'Infinity on High'},
+  {id: 'I\'m Like a Lawyer…', album: 'Infinity on High'},
+  {id: 'Hum Hallelujah', album: 'Infinity on High'},
+  {id: 'Golden', album: 'Infinity on High'},
+  {id: 'Thnks fr th Mmrs', album: 'Infinity on High'},
+  {id: 'Don\'t You Know Who I Think I Am?', album: 'Infinity on High'},
+  {id: 'The (After) Life of the Party', album: 'Infinity on High'},
+  {id: 'The Carpal Tunnel of Love', album: 'Infinity on High'},
+  {id: 'Bang the Doldrums', album: 'Infinity on High'},
+  {id: 'Fame < Infamy', album: 'Infinity on High'},
+  {id: 'You\'re Crashing, But You\'re No Wave', album: 'Infinity on High'},
+  {id: 'I\'ve Got All This Ringing…', album: 'Infinity on High'},
+  {id: 'G.I.N.A.S.F.S', album: 'Infinity on High'},
+  {id: 'It’s Hard to Say I Do', album: 'Infinity on High'},
+  {id: 'Lullabye ', album: 'Folie a Deux'},
+  {id: 'Disloyal Order of Water Buffaloes', album: 'Folie a Deux'},
+  {id: 'I Don\'t Care', album: 'Folie a Deux'},
+  {id: 'She\'s My Winona', album: 'Folie a Deux'},
+  {id: 'America\'s Suitehearts', album: 'Folie a Deux'},
+  {id: 'Headfirst Slide into Cooperstown on a Bad Bet', album: 'Folie a Deux'},
+  {id: 'The (Shipped) Gold Standard', album: 'Folie a Deux'},
+  {id: '(Coffee\'s for Closers)', album: 'Folie a Deux'},
+  {id: 'What a Catch, Donnie', album: 'Folie a Deux'},
+  {id: '27', album: 'Folie a Deux'},
+  {id: 'Tiffany Blews ', album: 'Folie a Deux'},
+  {id: 'w.a.m.s.', album: 'Folie a Deux'},
+  {id: '20 Dollar Nose Bleed ', album: 'Folie a Deux'},
+  {id: 'West Coast Smoker ', album: 'Folie a Deux'},
+  {id: 'Pavlove', album: 'Folie a Deux'},
+  {id: 'The Phoenix', album: 'Save Rock and Roll'},
+  {id: 'My Songs Know…', album: 'Save Rock and Roll'},
+  {id: 'Alone Together', album: 'Save Rock and Roll'},
+  {id: 'Where Did the Party Go', album: 'Save Rock and Roll'},
+  {id: 'Just One Yesterday', album: 'Save Rock and Roll'},
+  {id: 'The Mighty Fall', album: 'Save Rock and Roll'},
+  {id: 'Miss Missing You', album: 'Save Rock and Roll'},
+  {id: 'Death Valley', album: 'Save Rock and Roll'},
+  {id: 'Young Volcanoes', album: 'Save Rock and Roll'},
+  {id: 'Rat a Tat', album: 'Save Rock and Roll'},
+  {id: 'Save Rock and Roll ', album: 'Save Rock and Roll'},
+  {id: 'We Were Doomed from the Start', album: 'Save Rock and Roll'},
+  {id: 'Art of Keeping Up Disappearances', album: 'Save Rock and Roll'},
+  {id: 'Hot to the Touch, Cold on the Inside', album: 'Save Rock and Roll'},
+  {id: 'Love, Sex, Death', album: 'Save Rock and Roll'},
+  {id: 'Eternal Summer', album: 'Save Rock and Roll'},
+  {id: 'Demigods', album: 'Save Rock and Roll'},
+  {id: 'American Made', album: 'Save Rock and Roll'},
+  {id: 'Caffeine Cold', album: 'Save Rock and Roll'},
+  {id: 'Irresistible', album: 'American Beauty/American Psycho'},
+  {id: 'American Beauty/American Psycho ', album: 'American Beauty/American Psycho'},
+  {id: 'Centuries ', album: 'American Beauty/American Psycho'},
+  {id: 'The Kids Aren\'t Alright', album: 'American Beauty/American Psycho'},
+  {id: 'Uma Thurman', album: 'American Beauty/American Psycho'},
+  {id: 'Jet Pack Blues', album: 'American Beauty/American Psycho'},
+  {id: 'Novocaine', album: 'American Beauty/American Psycho'},
+  {id: 'Fourth of July', album: 'American Beauty/American Psycho'},
+  {id: 'Favorite Record', album: 'American Beauty/American Psycho'},
+  {id: 'Immortals', album: 'American Beauty/American Psycho'},
+  {id: 'Twin Skeleton\'s (Hotel in NYC)', album: 'American Beauty/American Psycho'},
+  {id: 'Stay Frosty Royal Milk Tea', album: 'Mania'},
+  {id: 'The Last of the Real Ones', album: 'Mania'},
+  {id: 'Hold Me Tight or Don\'t', album: 'Mania'},
+  {id: 'Wilson (Expensive Mistakes)', album: 'Mania'},
+  {id: 'Church', album: 'Mania'},
+  {id: 'Heaven\'s Gate', album: 'Mania'},
+  {id: 'Champion', album: 'Mania'},
+  {id: 'Sunshine Riptide ', album: 'Mania'},
+  {id: 'Young and Menace', album: 'Mania'},
+  {id: 'Bishops Knife Trick', album: 'Mania'}
+];
+
+var myPicker = new picker.Picker({
+    items: items,
+    localStorageKey: 'picker-state',
+    defaultSettings: {
+         albums: ['Take This to Your Grave', 'From Under the Cork Tree', 'Infinity on High', 'Folie a Deux', 'Save Rock and Roll', 'American Beauty/American Psycho', 'Mania']
+},
+shouldIncludeItem: function(item, settings) {
+     return settings.albums.indexOf(item.album) !== -1;
+}
+});
+
+var pickerUI = new PickerUI(myPicker, {
+elements: {
+    pick: "#pick",
+    pass: "#pass",
+    undo: "#undo",
+    redo: "#redo",
+    evaluating: "#evaluating",
+    favorites: "#favorites",
+    settings: {
+albums: '.albums'
+        }
+    },
+    onUpdate: function(updateType) {
+    var total = this.picker.state.items.length;
+    var favorites = this.picker.state.arrays.favorites.length;
+    var eliminated = this.picker.state.arrays.eliminated.length;
+    var remaining = Math.max(0, total - favorites - eliminated - 1);
+
+    $("#remaining").text(remaining);
+
+    updateProgressBar((1 - (remaining / this.picker.state.roundSize)) * 100, updateType);
+    }
+});
+
+pickerUI.initialize();
+
+/* PROGRESS BAR */
+
+function updateProgressBar(value, updateType) {
+    var $progressBar = $("#progress-bar span");
+
+    if (['pick', 'undo', 'redo'].indexOf(updateType) !== -1) {
+        if (!value && updateType !== 'undo') {
+            $progressBar.animate({ width: '100%' }, 400, function () {
+                $progressBar.width(0);
+            });
+        } else {
+            if (!$progressBar.width() && updateType === 'undo') {
+                $progressBar.width("100%")
+            }
+            $progressBar.animate({ width: value + '%' }, 400);
+        }
+    } else {
+        $progressBar.width(value + '%');
+    }
+}
+
+/* Sortable favorites - you can safely remove this, and the Sortable.min.js script, if you don't want to be able to sort your favorite list. */
+var sortable = new Sortable(pickerUI.elem.favorites.get(0), {
+    draggable: '.item',
+    animation: 100,
+    onStart: function() {
+        pickerUI.elem.favorites.addClass("sorting");
+    },
+    onEnd: function() {
+        pickerUI.elem.favorites.removeClass("sorting");
+    },
+    onUpdate: function() {
+        myPicker.setFavorites(pickerUI.elem.favorites.children().map(function() {
+            return pickerUI.getItem(this);
+        }).get());
+        pickerUI.update(true);
+    }
+});
+/* End sortable favorites */
+</script>
+</body>
+</html>
