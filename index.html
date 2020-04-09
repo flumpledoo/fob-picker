@@ -374,7 +374,7 @@ var items = [
 
 var myPicker = new picker.Picker({
     items: items,
-    localStorageKey: 'picker-state',
+    localStorageKey: 'fob-state',
     defaultSettings: {
          albums: ['Take This to Your Grave', 'From Under the Cork Tree', 'Infinity on High', 'Folie a Deux', 'Save Rock and Roll', 'American Beauty/American Psycho', 'Mania']
 },
@@ -392,7 +392,7 @@ elements: {
     evaluating: "#evaluating",
     favorites: "#favorites",
     settings: {
-albums: '.albums'
+            albums: '.albums'
         }
     },
     onUpdate: function(updateType) {
